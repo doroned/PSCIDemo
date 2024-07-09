@@ -14,7 +14,9 @@ env:
   
 jobs:
   build:
-
+    env:
+      BUILD_CONFIG: Release
+      DOT_NET_VERSION: 8.0.x
     runs-on: ubuntu-latest
 
     steps:
@@ -22,11 +24,14 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 8.0.x
+        dotnet-version: ${{ env.DOT_NET_VERSION }}
     - name: Restore dependencies
       run: dotnet restore
+    - name: Print build config
+      run: echo "Build Config - $BUILD_CONFIG"
+      
     - name: Build
-      run: dotnet build --configuration Release
+      run: dotnet build --configuration ${{ env.BUILD_CONFIG }}
       
     - name: Publish
       run: dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKGE_PATH }}/myapp'
@@ -35,6 +40,8 @@ jobs:
       uses: Azure/webapps-deploy@v3.0.1
       with:
         app-name: ${{ env.AZRUE_WEBAPP_NAME }}
-        slot-name: 'development'
+        slot-name: '${{env.SLOT_NAME}}'
         publish-profile: ${{ secrets.AZURE_PUBLISH_PROFILE }}
         package: '${{ env.AZURE_WEBAPP_PACKGE_PATH }}/myapp'
+      env: 
+        SLOT_NAME: development
